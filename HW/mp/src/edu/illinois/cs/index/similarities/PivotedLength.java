@@ -16,7 +16,7 @@ public class PivotedLength extends SimilarityBase {
     protected float score(BasicStats stats, float termFreq, float docLength) {
     	double s = 0.75;
     	double comp1, comp2, comp3;
-    	comp1 = (1 + Math.log(1 + Math.log(termFreq))) / (1 + s + s * docLength / stats.getAvgFieldLength());
+    	comp1 = (1 + Math.log(1 + Math.log(termFreq))) / (1 - s + s * docLength / stats.getAvgFieldLength());
     	comp2 = 1;
     	comp3 = Math.log((stats.getNumberOfDocuments() + 1) / (stats.getDocFreq()));    			
     	double result = comp1 * comp2 * comp3;  	

@@ -113,23 +113,60 @@ public class Searcher
         {
             System.out.println("\nScoring documents with " + indexSearcher.getSimilarity().toString());
             Similarity sim = indexSearcher.getSimilarity();
-
+            double len = 0;
             // have to do this to figure out query length in the LM scorers
             if(sim instanceof JelinekMercer)
             {
                 Set<Term> terms = new HashSet<Term>();
                 luceneQuery.extractTerms(terms);
                 ((JelinekMercer) sim).setQueryLength(terms.size());
+                len = terms.size();
             }
             else if(sim instanceof DirichletPrior)
             {
                 Set<Term> terms = new HashSet<Term>();
                 luceneQuery.extractTerms(terms);
                 ((DirichletPrior) sim).setQueryLength(terms.size());
+                len = terms.size();
             }
 
             TopDocs docs = indexSearcher.search(luceneQuery, searchQuery.fromDoc() + searchQuery.numResults());
+            // this is the search..  that return the top 10 docs
+            
             ScoreDoc[] hits = docs.scoreDocs;
+            if(sim instanceof JelinekMercer)
+            {
+            	for(ScoreDoc hit : hits)
+                	hit.score += len * Math.log(0.1);
+                
+            }
+            else if(sim instanceof DirichletPrior)
+            {
+                float docL = ((DirichletPrior) sim).getDocLen();
+                for(ScoreDoc hit : hits){
+                	//System.out.println(hit.score);
+                	//double alphad = 1645 / (1645+docL);
+                	double alphad = 3000 / (3000+docL);
+                	hit.score += len * Math.log(alphad);
+                }
+            }
+            // sort
+            boolean swapped = true;
+            int j = 0;
+            ScoreDoc tmp;
+            while (swapped) {
+                  swapped = false;
+                  j++;
+                  for (int i = 0; i < hits.length - j; i++) {                                       
+                        if (hits[i].score < hits[i + 1].score) {                          
+                              tmp = hits[i];
+                              hits[i] = hits[i+1];
+                              hits[i+1] = tmp;
+                              swapped = true;
+                        }
+                  }                
+            }
+            //
             String field = searchQuery.fields().get(0);
 
             SearchResult searchResult = new SearchResult(searchQuery, docs.totalHits);
@@ -137,7 +174,6 @@ public class Searcher
             {
                 Document doc = indexSearcher.doc(hit.doc);
                 ResultDoc rdoc = new ResultDoc(hit.doc);
-
                 String highlighted = null;
                 try
                 {

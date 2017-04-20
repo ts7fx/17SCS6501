@@ -14,11 +14,7 @@ public class BooleanDotProduct extends SimilarityBase {
      */
     @Override
     protected float score(BasicStats stats, float termFreq, float docLength) { 
-    	// this function is called once per word in the query for each document where that word occurs.
-    	
-    	// Once all the documents are scored, Lucene outputs a list of documents ranked by their score.
-    	
-    	// where and how is this function used?
+
         return 1;
     }
 

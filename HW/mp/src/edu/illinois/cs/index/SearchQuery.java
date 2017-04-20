@@ -8,7 +8,7 @@ public class SearchQuery
     private String queryText;
     private int numResults;
     private int from;
-    private final static int defaultNumResults = 10;
+    private final static int defaultNumResults = 100000;
     private final static String defaultField = "content";
 
     public SearchQuery queryText(String queryText)

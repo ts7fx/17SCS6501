@@ -30,7 +30,7 @@ public class Evaluate {
 
 	//Please implement P@K, MRR and NDCG accordingly
 	public static void main(String[] args) throws IOException { // this is the main method
-		String method = "--dp";// specify the ranker you want to test
+		String method = "--ok";// specify the ranker you want to test
 		
 		_searcher = new Searcher(_indexPath);		// initiate a new searcher
 		Runner.setSimilarity(_searcher, method);   	// set similarity based on model chosen. bdp (boolean dot product)
@@ -44,6 +44,7 @@ public class Evaluate {
 			
 			//compute corresponding AP
 			meanAvgPrec += AvgPrec(line, judgement); // line is query, where judgement is a list of numbers
+			System.out.println("avgPrec: " + AvgPrec(line, judgement));
 			//compute corresponding P@K				
 			p_k += Prec(line, judgement, k);		 // the list of numbers refer to relevant documents. 
 			//compute corresponding MRR
@@ -63,7 +64,7 @@ public class Evaluate {
 
 	private static double AvgPrec(String query, String docString) {
 		ArrayList<ResultDoc> results = _searcher.search(query).getDocs(); // documents that are returned by a query
-		System.out.println(results.size()); // why does the search only return 10 documents?
+		//System.out.println(results.size()); // why does the search only return 10 documents?
 		
 		if (results.size() == 0)
 			return 0; // no result returned
@@ -73,25 +74,24 @@ public class Evaluate {
 		int i = 1;	// what is this for?
 		double avgp = 0.0;
 		double numRel = 0; // number of relevant docs
-		System.out.println("\nQuery: " + query); // print out the query
+		//System.out.println("\nQuery: " + query); // print out the query
 		for (ResultDoc rdoc : results) { // for every document in the returned set of documents
 			if (relDocs.contains(rdoc.title())) { // if the document is in the set of relevant documents
 				//how to accumulate average precision (avgp) when we encounter a relevant document
 				numRel ++;
 				avgp += (numRel / i);
-				System.out.print("  ");
+		//		System.out.print("  ");
 			} else {
 				//how to accumulate average precision (avgp) when we encounter an irrelevant document
-				System.out.print("X ");
+		//		System.out.print("X ");
 			}
-			System.out.println(i + ". " + rdoc.title());
+		//	System.out.println(i + ". " + rdoc.title());
 			++i;
 		}
 		// compute average precision here
 		if (numRel == 0)
 			return 0;
 		avgp /= numRel;
-		System.out.println("Average Precision: " + avgp);
 		return avgp;
 	}
 	
@@ -101,12 +101,13 @@ public class Evaluate {
 		System.out.println(results.size()); // why does the search only return 10 documents?
 		if (results.size() == 0) // no results, no precision
 			return 0;
+		if (results.size() < k)
+			k = results.size();
 		HashSet<String> relDocs = new HashSet<String>(Arrays.asList(docString.split(" "))); // a set of relevent docs
 		double p_k = 0;
 		double numRel = 0;
 		for(int i = 0; i < k; i++){
 			if (relDocs.contains(results.get(i).title())){
-				System.out.println("blablabla"+results.get(i));
 				numRel ++;
 			}
 		}
@@ -125,14 +126,15 @@ public class Evaluate {
 		double rr = 0;
 		for (ResultDoc rdoc : results) { // for every document in the returned set of documents
 			if (relDocs.contains(rdoc.title())) { // if the document is in the set of relevant documents
-				relPosition = results.indexOf(rdoc) +1; 
-				System.out.print("  RRRRR" + relPosition);
+				relPosition = results.indexOf(rdoc)+1; 
 				break;
 			} 
 		}
 		if (relPosition == 0)
 			return 0;
 		rr = 1/relPosition;
+		System.out.println("rr:   " + rr); // why does the search only return 10 documents?
+
 		return rr;
 	}
 	
@@ -141,6 +143,7 @@ public class Evaluate {
 		ArrayList<ResultDoc> results = _searcher.search(query).getDocs(); // documents that are returned by a query
 		if (results.size() == 0)
 			return 0;
+
 		HashSet<String> relDocs = new HashSet<String>(Arrays.asList(docString.split(" "))); // a set of relevent docs
 		double numRel = 0;
 		double DCG = 0, IDCG=0;

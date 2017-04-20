@@ -7,7 +7,7 @@ public class DirichletPrior extends LMSimilarity {
 
     private LMSimilarity.DefaultCollectionModel model; // this would be your reference model
     private float queryLength = 0; // will be set at query time automatically
-
+    private float docLen=0;
     public DirichletPrior() {
         model = new LMSimilarity.DefaultCollectionModel();
     }
@@ -21,21 +21,25 @@ public class DirichletPrior extends LMSimilarity {
      * @param docLength
      */
     @Override
-    protected float score(BasicStats stats, float termFreq, float docLength) {    	
-    	double mu = 2500;
+    protected float score(BasicStats stats, float termFreq, float docLength) { 
+    	docLen = docLength;
+    	double mu = 3000;
+    	//double mu = 1645; // 1645
     	double alphad = mu / (mu+docLength);
-    	double a,b,c;
+    	double a,b;
     	double pwc = model.computeProbability(stats);
     	a = (termFreq + mu * pwc)/(mu + docLength);
     	b = alphad * pwc;
-    	c = queryLength * Math.log(alphad);
-    	double result = Math.log(a/b) + c;
+    	double result = Math.log(a/b);
         return (float)result;
     }
 
     @Override
     public String getName() {
         return "Dirichlet Prior";
+    }
+    public float getDocLen() {
+        return docLen;
     }
 
     @Override
